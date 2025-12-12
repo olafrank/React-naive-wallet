@@ -24,6 +24,18 @@ export default function SignUpScreen() {
     const onSignUpPress = async () => {
         if (!isLoaded) return
 
+        setError('')
+
+        if (!emailAddress.trim() || !password.trim()) {
+            setError('Please enter both email and password.')
+            return
+        }
+
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters long.')
+            return
+        }
+
         // Start sign-up process using email and password provided
         try {
             await signUp.create({
@@ -62,9 +74,29 @@ export default function SignUpScreen() {
                 await setActive({ session: signUpAttempt.createdSessionId })
                 router.replace('/')
             } else {
-                // If the status is not complete, check why. User may need to
-                // complete further steps.
-                console.error(JSON.stringify(signUpAttempt, null, 2))
+                // If the status is not complete, surface a clear message
+                // to the user describing next steps, but keep a debug
+                // log for diagnostics.
+                console.debug(JSON.stringify(signUpAttempt, null, 2))
+
+                const status = signUpAttempt.status
+                let message = 'Verification incomplete. Please check your email or contact support.'
+
+                switch (status) {
+                    case 'needs_verification':
+                    case 'needs_email_verification':
+                        message = 'Verification required — please check your email for a verification link or code. If you did not receive it, check your spam folder or request a new verification email.'
+                        break
+                    case 'needs_phone_verification':
+                        message = 'Phone verification required — enter the code sent to your phone. If you did not receive a code, request a new one from the app.'
+                        break
+                    case 'requires_more_info':
+                        message = 'Additional information required — please complete any missing fields in the signup form and try again.'
+                        break
+                    default:
+                        break
+                }
+                setError(message)
             }
         } catch (err) {
             if (err.errors?.[0]?.code === 'form_verification_code_incorrect') {
@@ -119,11 +151,9 @@ export default function SignUpScreen() {
                 <Image
                     source={require('@/assets/images/revenue-i2.png')}
                     style={styles.illustration}
-
                 />
 
                 <Text style={styles.title}>Create Account</Text>
-
                 {error ? (<View style={styles.errorBox}>
                     <Ionicons name="alert-circle" size={20} color={COLORS.expense} />
                     <Text style={styles.errorText}>{error}</Text>
@@ -150,6 +180,16 @@ export default function SignUpScreen() {
                 />
                 <TouchableOpacity style={styles.button} onPress={onSignUpPress}>
                     <Text style={styles.buttonText}>Sign Up</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={() => router.replace('/sign-in')}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel="Back to Sign In"
+                    style={{ marginTop: 12 }}
+                >
+
                 </TouchableOpacity>
 
                 <View style={styles.footerContainer}>
