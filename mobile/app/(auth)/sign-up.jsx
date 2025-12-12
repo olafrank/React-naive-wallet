@@ -38,9 +38,11 @@ export default function SignUpScreen() {
             // and capture OTP code
             setPendingVerification(true)
         } catch (err) {
-            // See https://clerk.com/docs/custom-flows/error-handling
-            // for more info on error handling
-            console.error(JSON.stringify(err, null, 2))
+            if (err.errors?.[0]?.code === 'form_identifier_exists') {
+                setError('Email address already in use. Please use a different email.')
+            } else {
+                setError('An unexpected error occurred. Please try again later')
+            }
         }
     }
 
@@ -65,35 +67,44 @@ export default function SignUpScreen() {
                 console.error(JSON.stringify(signUpAttempt, null, 2))
             }
         } catch (err) {
-            // See https://clerk.com/docs/custom-flows/error-handling
-            // for more info on error handling
-            console.error(JSON.stringify(err, null, 2))
+            if (err.errors?.[0]?.code === 'form_verification_code_incorrect') {
+                setError('Incorrect verification code. Please try again.')
+            }
+            else {
+                setError('An unexpected error occurred. Please try again later')
+            }
         }
     }
 
     if (pendingVerification) {
         return (
-            <View style={styles.verificationContainer}>
-                <Text style={styles.verificationTitle}>Verify your email</Text>
+            <KeyboardAwareScrollView style={{ flex: 1 }}
+                contentContainerStyle={{ flexGrow: 1, }}
+                enableOnAndroid={true}
+                enableAutomaticScroll={true}
+                extraScrollHeight={100}>
+                <View style={styles.verificationContainer}>
+                    <Text style={styles.verificationTitle}>Verify your email</Text>
 
-                {error ? (<View style={styles.errorBox}>
-                    <Ionicons name="alert-circle" size={20} color={COLORS.expense} />
-                    <Text style={styles.errorText}>{error}</Text>
-                    <TouchableOpacity onPress={() => setError('')}>
-                        <Ionicons name="close" size={20} color={COLORS.textLight} />
+                    {error ? (<View style={styles.errorBox}>
+                        <Ionicons name="alert-circle" size={20} color={COLORS.expense} />
+                        <Text style={styles.errorText}>{error}</Text>
+                        <TouchableOpacity onPress={() => setError('')}>
+                            <Ionicons name="close" size={20} color={COLORS.textLight} />
+                        </TouchableOpacity>
+                    </View>) : null}
+
+                    <TextInput
+                        style={[styles.verificationInput, error && styles.errorInput]}
+                        value={code}
+                        placeholder="Enter your verification code"
+                        onChangeText={(code) => setCode(code)}
+                    />
+                    <TouchableOpacity onPress={onVerifyPress} style={styles.button}>
+                        <Text style={styles.buttonText}>Verify</Text>
                     </TouchableOpacity>
-                </View>) : null}
-
-                <TextInput
-                    style={[styles.verificationInput, error && styles.errorInput]}
-                    value={code}
-                    placeholder="Enter your verification code"
-                    onChangeText={(code) => setCode(code)}
-                />
-                <TouchableOpacity onPress={onVerifyPress} style={styles.button}>
-                    <Text style={styles.buttonText}>Verify</Text>
-                </TouchableOpacity>
-            </View>
+                </View>
+            </KeyboardAwareScrollView>
         )
     }
 
