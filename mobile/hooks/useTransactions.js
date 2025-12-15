@@ -6,9 +6,10 @@ import { Alert } from "react-native"
 
 const API_URL = "https://wallet-api-husk.onrender.com/api";
 
-export const useTransactions = (userId) => {
+export const useTransactions = (user_id) => {
 
     const [transactions, setTransactions] = useState([]);
+
     const [summary, setSummary] = useState({
         balance: 0,
         income: 0,
@@ -24,30 +25,39 @@ export const useTransactions = (userId) => {
 
     const fetchTransactions = useCallback(async () => {
         try {
-            const response = await fetch(`${API_URL}/transactions/${userId}`);
+            const response = await fetch(`${API_URL}/transactions/${user_id}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch transactions: ${response.status}`);
+            }
             const data = await response.json();
             setTransactions(data);
 
         } catch (error) {
             console.error("Error fetching transactions:", error);
+            Alert.alert("Error", "Failed to load transactions");
         }
-    }, [userId]);
+    }, [user_id]);
 
     const fetchSumary = useCallback(async () => {
         try {
-            const response = await fetch(`${API_URL}/summary/${userId}`);
+            const response = await fetch(`${API_URL}/transactions/summary/${user_id}`);
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('Non-JSON response when fetching summary:', text);
+                throw new Error(`Server error: ${response.status}`);
+            }
             const data = await response.json();
             setSummary(data);
 
         } catch (error) {
             console.error("Error fetching transactions:", error);
         }
-    }, [userId]);
+    }, [user_id]);
 
     // useCallback to load both transactions and summary
 
     const loadData = useCallback(async () => {
-        if (!userId) return;
+        if (!user_id) return;
 
         setisLoading(true);
 
@@ -60,13 +70,13 @@ export const useTransactions = (userId) => {
         } finally {
             setisLoading(false);
         }
-    }, [userId, fetchTransactions, fetchSumary]);
+    }, [user_id, fetchTransactions, fetchSumary]);
 
 
     const deleteTransaction = async (id) => {
         try {
             const response = await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
-            if (response.ok) throw new Error('Failed to delete transaction');
+            if (!response.ok) throw new Error('Failed to delete transaction');
 
             // Refresh data after deletion
             loadData();
