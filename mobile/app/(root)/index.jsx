@@ -16,7 +16,7 @@ export default function Page() {
     console.log("Transactions:", transactions)
     console.log("Summary:", summary)
 
-    console.log("user_id", user.id)
+    console.log("userId", user.id)
 
 
     return (

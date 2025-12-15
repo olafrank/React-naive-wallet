@@ -1,13 +1,13 @@
 
 import { sql } from "../config/db.js";
 
-export async function getTransactionsByUserId(res, req) {
+export async function getTransactionsByUserId(req, res) {
 
     try {
-        const { user_id } = req.params;
+        const { userId } = req.params;
 
         const transactions = await sql`
-            SELECT * FROM transactions WHERE user_id = ${user_id} ORDER BY created_at DESC`;
+            SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC`;
         res.status(200).json(transactions);
 
     } catch (error) {
@@ -62,16 +62,16 @@ export async function deleteTransaction(res, req) {
 
 export async function getTransactionSummaryByUserId(res, req) {
     try {
-        const { user_id } = req.params;
+        const { userId } = req.params;
 
         const balanceResult = await sql`
-        SELECT COALESCE(SUM(amount),0) as balance FROM transactions WHERE user_id = ${user_id};`
+        SELECT COALESCE(SUM(amount),0) as balance FROM transactions WHERE user_id = ${userId};`
 
         const incomeResult = await sql`
-        SELECT COALESCE(SUM(amount),0) as income FROM transactions WHERE user_id = ${user_id} AND amount > 0;`
+        SELECT COALESCE(SUM(amount),0) as income FROM transactions WHERE user_id = ${userId} AND amount > 0;`
 
         const expenseResult = await sql`
-        SELECT COALESCE(SUM(amount),0) as expenses FROM transactions WHERE user_id = ${user_id} AND amount < 0;`
+        SELECT COALESCE(SUM(amount),0) as expenses FROM transactions WHERE user_id = ${userId} AND amount < 0;`
 
         res.status(200).json({
             balance: balanceResult[0].balance,

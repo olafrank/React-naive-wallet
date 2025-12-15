@@ -4,9 +4,9 @@ import { useState, useCallback } from "react"
 import { Alert } from "react-native"
 
 
-const API_URL = "http://localhost:5001/api";
+const API_URL = "https://wallet-api-husk.onrender.com/api";
 
-export const useTransactions = (user_id) => {
+export const useTransactions = (userId) => {
 
     const [transactions, setTransactions] = useState([]);
     const [summary, setSummary] = useState({
@@ -24,30 +24,30 @@ export const useTransactions = (user_id) => {
 
     const fetchTransactions = useCallback(async () => {
         try {
-            const response = await fetch(`${API_URL}/transactions/${user_id}`);
+            const response = await fetch(`${API_URL}/transactions/${userId}`);
             const data = await response.json();
             setTransactions(data);
 
         } catch (error) {
             console.error("Error fetching transactions:", error);
         }
-    }, [user_id]);
+    }, [userId]);
 
     const fetchSumary = useCallback(async () => {
         try {
-            const response = await fetch(`${API_URL}/summary/${user_id}`);
+            const response = await fetch(`${API_URL}/summary/${userId}`);
             const data = await response.json();
             setSummary(data);
 
         } catch (error) {
             console.error("Error fetching transactions:", error);
         }
-    }, [user_id]);
+    }, [userId]);
 
     // useCallback to load both transactions and summary
 
     const loadData = useCallback(async () => {
-        if (!user_id) return;
+        if (!userId) return;
 
         setisLoading(true);
 
@@ -60,7 +60,7 @@ export const useTransactions = (user_id) => {
         } finally {
             setisLoading(false);
         }
-    }, [user_id, fetchTransactions, fetchSumary]);
+    }, [userId, fetchTransactions, fetchSumary]);
 
 
     const deleteTransaction = async (id) => {
